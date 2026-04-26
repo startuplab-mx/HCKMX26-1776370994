@@ -31,6 +31,15 @@ class MandatoryLesson3Screen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ── Duki Zen ──────────────────────────────────────────
+                    Center(
+                      child: Image.asset(
+                        'assets/img/duki_zen.png',
+                        height: 240,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+
                     // ── Hero Card Plan de 4 Pasos ──────────────────────────
                     const _HeroCard(
                       label: 'PLAN DE 4 PASOS',
