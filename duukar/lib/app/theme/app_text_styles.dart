@@ -65,6 +65,18 @@ class AppTextStyles {
     fontWeight: FontWeight.w600,
     color: AppColors.textSecondary,
   );
+  static TextStyle labelSmall = const TextStyle(
+    fontFamily: 'Inter',
+    fontSize: 10,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textSecondary,
+  );
+  static TextStyle titleAppBar = const TextStyle(
+    fontFamily: 'Fredoka',
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: AppColors.primary,
+  );
   static TextTheme textTheme = TextTheme(
     displayLarge: displayLarge,
     headlineLarge: headlineLarge,

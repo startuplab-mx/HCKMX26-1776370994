@@ -4,6 +4,8 @@ class AppColors {
   const AppColors._();
 
   static const Color primary = Color(0xFF6ECBF5);
+  static const Color primaryPressed = Color(0xFF4FA8D1);
+  static const Color primaryLight = Color(0xFFE3F5FF);
   static const Color background = Color(0xFFF9FBFF);
   static const Color textPrimary = Color(0xFF24324A);
   static const Color textSecondary = Color(0xFF5B6B88);

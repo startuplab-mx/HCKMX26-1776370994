@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/auth/screens/forgot_password_screen.dart';
+import '../features/auth/screens/login_screen.dart';
+import '../features/auth/screens/register_screen.dart';
+import '../features/auth/screens/verify_account_screen.dart';
+import '../features/onboarding/screens/intro_duki_screen.dart';
+import '../features/onboarding/screens/navigation_tutorial_screen.dart';
+import '../features/onboarding/screens/splash_screen.dart';
+import '../features/onboarding/screens/welcome_screen.dart';
 import 'theme/app_text_styles.dart';
 
 class AppRoutes {
@@ -35,125 +43,146 @@ class AppRoutes {
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
   routes: [
-    _route(AppRoutes.splash, 'splash', 'Splash', 'Pantalla inicial de Duukar'),
-    _route(
-      AppRoutes.welcome,
-      'welcome',
-      'Bienvenida', // title <- solo demo
-      'Portada y acceso inicial', // subtitle <- tmb solo demo
+    // ── Onboarding ──────────────────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.splash,
+      name: 'splash',
+      builder: (_, __) => const SplashScreen(),
     ),
-    _route(AppRoutes.login, 'login', 'Inicia sesión', 'Acceso de usuario'),
-    _route(
-      AppRoutes.register,
-      'register',
-      'Crear cuenta',
-      'Registro de usuario',
+    GoRoute(
+      path: AppRoutes.welcome,
+      name: 'welcome',
+      builder: (_, __) => const WelcomeScreen(),
     ),
-    _route(
-      AppRoutes.forgotPassword,
-      'forgot-password',
-      'Recuperar contraseña',
-      'Flujo de recuperación',
+    GoRoute(
+      path: AppRoutes.introDuki,
+      name: 'intro-duki',
+      builder: (_, __) => const IntroDukiScreen(),
     ),
-    _route(
-      AppRoutes.verifyAccount,
-      'verify-account',
-      'Verificar cuenta',
-      'Confirmación inicial',
+    GoRoute(
+      path: AppRoutes.navigationTutorial,
+      name: 'navigation-tutorial',
+      builder: (_, __) => const NavigationTutorialScreen(),
     ),
-    _route(
-      AppRoutes.introDuki,
-      'intro-duki',
-      'Conoce a Duki',
-      'Presentación del asistente',
+
+    // ── Auth ─────────────────────────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.login,
+      name: 'login',
+      builder: (_, __) => const LoginScreen(),
     ),
-    _route(
-      AppRoutes.navigationTutorial,
-      'navigation-tutorial',
-      'Tutorial',
-      'Espacios principales de la app',
+    GoRoute(
+      path: AppRoutes.register,
+      name: 'register',
+      builder: (_, __) => const RegisterScreen(),
     ),
-    _route(
+    GoRoute(
+      path: AppRoutes.forgotPassword,
+      name: 'forgot-password',
+      builder: (_, __) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.verifyAccount,
+      name: 'verify-account',
+      builder: (_, __) => const VerifyAccountScreen(),
+    ),
+
+    // ── Lessons & Post-onboarding (placeholders) ─────────────────────
+    _placeholder(
       AppRoutes.mandatoryLesson1,
       'mandatory-lesson-1',
       'Lección 1',
       'Clase obligatoria inicial',
     ),
-    _route(
+    _placeholder(
       AppRoutes.mandatoryLesson2,
       'mandatory-lesson-2',
       'Lección 2',
       'Señales de alerta',
     ),
-    _route(
+    _placeholder(
       AppRoutes.mandatoryLesson3,
       'mandatory-lesson-3',
       'Lección 3',
       'Decisiones seguras',
     ),
-    _route(
+    _placeholder(
       AppRoutes.reward,
       'reward',
       'Recompensa',
       'Primera misión completada',
     ),
-    _route(AppRoutes.homeKids, 'home-kids', 'Home 6-11', 'Inicio infantil'),
-    _route(
+
+    // ── Home ─────────────────────────────────────────────────────────
+    _placeholder(
+      AppRoutes.homeKids,
+      'home-kids',
+      'Home 6-11',
+      'Inicio infantil',
+    ),
+    _placeholder(
       AppRoutes.homeTeens,
       'home-teens',
       'Home 12-17',
       'Inicio adolescentes',
     ),
-    _route(
+
+    // ── Features ─────────────────────────────────────────────────────
+    _placeholder(
       AppRoutes.askDuki,
       'ask-duki',
       'Pregúntale a Duki',
-      'Consulta captura, enlace o texto',
+      'Consulta a Duki',
     ),
-    _route(
+    _placeholder(
       AppRoutes.analysisType,
       'analysis-type',
       'Tipo de análisis',
       'Modo Radar de humo',
     ),
-    _route(
+    _placeholder(
       AppRoutes.analyzing,
       'analyzing',
       'Analizando',
       'Procesando contenido',
     ),
-    _route(
+    _placeholder(
       AppRoutes.analysisResult,
       'analysis-result',
       'Resultado',
       'Riesgo, señales y explicación',
     ),
-    _route(
+    _placeholder(
       AppRoutes.reportForm,
       'report-form',
       'Reportar',
       'Formulario de reporte',
     ),
-    _route(
+    _placeholder(
       AppRoutes.reportsHistory,
       'reports-history',
       'Historial de reportes',
       'Reportes enviados',
     ),
-    _route(
+    _placeholder(
       AppRoutes.achievements,
       'achievements',
       'Logros',
       'Insignias y avance',
     ),
-    _route(AppRoutes.shop, 'shop', 'Tienda Duki', 'Skins y personalización'),
-    _route(
+    _placeholder(
+      AppRoutes.shop,
+      'shop',
+      'Tienda Duki',
+      'Skins y personalización',
+    ),
+    _placeholder(
       AppRoutes.progress,
       'progress',
       'Tu progreso',
       'Nivel, racha y módulos',
     ),
-    _route(
+    _placeholder(
       AppRoutes.settings,
       'settings',
       'Configuración',
@@ -162,7 +191,7 @@ final GoRouter appRouter = GoRouter(
   ],
 );
 
-GoRoute _route(String path, String name, String title, String subtitle) {
+GoRoute _placeholder(String path, String name, String title, String subtitle) {
   return GoRoute(
     path: path,
     name: name,
@@ -180,6 +209,7 @@ class _RoutePlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text(title)),
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -196,6 +226,11 @@ class _RoutePlaceholderScreen extends StatelessWidget {
                       subtitle,
                       textAlign: TextAlign.center,
                       style: AppTextStyles.bodyLarge,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      '🚧 En construcción',
+                      style: TextStyle(fontSize: 24),
                     ),
                   ],
                 ),
