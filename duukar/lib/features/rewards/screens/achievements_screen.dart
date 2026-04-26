@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
@@ -7,6 +8,8 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/utils/nav_helper.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
+import '../../profile/profile_controller.dart';
+import '../../profile/profile_model.dart';
 
 // ---------------------------------------------------------------------------
 // Mock data — swap for real backend models
@@ -98,20 +101,37 @@ final _mockBadges = <_BadgeData>[
 ];
 
 // ---------------------------------------------------------------------------
+// Level title helper — derived from level number (mock progression titles)
+// ---------------------------------------------------------------------------
+
+String _levelTitle(int level) {
+  if (level <= 2) return 'Aprendiz';
+  if (level <= 5) return 'Explorador';
+  if (level <= 9) return 'Guardian';
+  if (level <= 14) return 'Héroe Digital';
+  return 'Maestro Duki';
+}
+
+/// XP display is derived (100 XP per level floor) because the DB does not
+/// store raw XP.  This is intentionally approximate for the hackathon.
+int _xpForLevel(int level) => (level - 1) * 100;
+int _xpMaxForLevel(int level) => level * 100;
+
+// ---------------------------------------------------------------------------
 // Screen
 // ---------------------------------------------------------------------------
 
 /// Pantalla de recompensas e insignias del usuario.
-/// Solo frontend — datos mockeados. TODO: conectar con RewardsRepository.
-class AchievementsScreen extends StatefulWidget {
+/// Nivel, racha y monedas provienen de Supabase profiles.
+/// Insignias, puntaje de seguridad y cápsulas siguen siendo mock.
+class AchievementsScreen extends ConsumerStatefulWidget {
   const AchievementsScreen({super.key});
 
   @override
-  State<AchievementsScreen> createState() => _AchievementsScreenState();
+  ConsumerState<AchievementsScreen> createState() => _AchievementsScreenState();
 }
 
-class _AchievementsScreenState extends State<AchievementsScreen> {
-  // TODO: conectar filtro/ordenamiento con RewardsRepository
+class _AchievementsScreenState extends ConsumerState<AchievementsScreen> {
   bool _showRecent = false;
 
   int get _currentNavIndex {
@@ -122,6 +142,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profileAsync = ref.watch(profileProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       bottomNavigationBar: AppBottomNav(
@@ -129,119 +151,122 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         onTap: (i) => NavHelper.goToTab(context, i),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // ── Header ──────────────────────────────────────────────────
-            _AchievementsHeader(),
+        child: profileAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => _buildBody(context, null),
+          data: (profile) => _buildBody(context, profile),
+        ),
+      ),
+    );
+  }
 
-            // ── Body ─────────────────────────────────────────────────────
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildBody(BuildContext context, UserProfile? profile) {
+    final coins = profile?.coins ?? 0;
+    final level = profile?.currentLevel ?? 1;
+    final streakDays = profile?.streakDays ?? 0;
+
+    // Count unlocked badges from the mock list (trivially derivable).
+    final unlockedCount = _mockBadges.where((b) => b.isUnlocked).length;
+
+    return Column(
+      children: [
+        // ── Header ──────────────────────────────────────────────────
+        _AchievementsHeader(coins: coins),
+
+        // ── Body ─────────────────────────────────────────────────────
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Level Card — real level, derived XP ────────────
+                _LevelCard(
+                  level: level,
+                  title: _levelTitle(level),
+                  xp: _xpForLevel(level),
+                  xpMax: _xpMaxForLevel(level),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── Stats Row ──────────────────────────────────────
+                Row(
                   children: [
-                    // ── Level Card ─────────────────────────────────────
-                    // TODO: obtener nivel y XP de UserRepository
-                    const _LevelCard(
-                      level: 12,
-                      title: 'Explorador',
-                      xp: 750,
-                      xpMax: 1000,
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // ── Stats Row ──────────────────────────────────────
-                    Row(
-                      children: [
-                        // TODO: obtener Puntaje de Seguridad de UserRepository
-                        Expanded(
-                          child: _StatCard(
-                            label: 'Puntaje de Seguridad',
-                            value: '98%',
-                            icon: Icons.shield_outlined,
-                            iconColor: const Color(0xFF2D81FF),
-                            bgColor: const Color(0xFFE6F0FF),
-                            valueFontSize: 28,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // TODO: obtener total insignias de RewardsRepository
-                        Expanded(
-                          child: _StatCard(
-                            label: 'Total Insignias',
-                            value: '5 Ganadas',
-                            icon: Icons.auto_awesome_rounded,
-                            iconColor: const Color(0xFFF4B740),
-                            bgColor: const Color(0xFFFFF3E0),
-                            valueFontSize: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // ── Streak Card ────────────────────────────────────
-                    // TODO: obtener racha de UserRepository
-                    const _StreakCard(days: 12),
-
-                    const SizedBox(height: 28),
-
-                    // ── Tienda de Duki ─────────────────────────────────
-                    _DukiShopBanner(
-                      // TODO: navegar a shop screen real
-                      onTap: () => context.go(AppRoutes.shop),
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    // ── Mis Logros header ──────────────────────────────
-                    Row(
-                      children: [
-                        Text('Mis logros', style: AppTextStyles.titleMedium),
-                        const Spacer(),
-                        _FilterButton(
-                          label: 'Filtrar',
-                          active: false,
-                          onTap: () {
-                            // TODO: mostrar bottom sheet de filtros por categoría
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        _FilterButton(
-                          label: 'Reciente',
-                          active: _showRecent,
-                          onTap: () =>
-                              setState(() => _showRecent = !_showRecent),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // ── Badge Grid ─────────────────────────────────────
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.85,
+                    // Racha Segura — real streak_days
+                    Expanded(
+                      child: _StatCard(
+                        label: 'Racha Segura',
+                        value: '$streakDays Días',
+                        icon: Icons.local_fire_department_rounded,
+                        iconColor: const Color(0xFFE35D6A),
+                        bgColor: const Color(0xFFFDE8EA),
+                        valueFontSize: 24,
                       ),
-                      itemCount: _mockBadges.length,
-                      itemBuilder: (_, i) => _BadgeCard(data: _mockBadges[i]),
+                    ),
+                    const SizedBox(width: 12),
+                    // Total insignias — count from mock badge list
+                    Expanded(
+                      child: _StatCard(
+                        label: 'Total Insignias',
+                        value: '$unlockedCount Ganadas',
+                        icon: Icons.auto_awesome_rounded,
+                        iconColor: const Color(0xFFF4B740),
+                        bgColor: const Color(0xFFFFF3E0),
+                        valueFontSize: 20,
+                      ),
                     ),
                   ],
                 ),
-              ),
+
+                const SizedBox(height: 16),
+
+                // ── Tienda de Duki ─────────────────────────────────
+                _DukiShopBanner(onTap: () => context.go(AppRoutes.shop)),
+
+                const SizedBox(height: 28),
+
+                // ── Mis Logros header ──────────────────────────────
+                Row(
+                  children: [
+                    Text('Mis logros', style: AppTextStyles.titleMedium),
+                    const Spacer(),
+                    _FilterButton(
+                      label: 'Filtrar',
+                      active: false,
+                      onTap: () {
+                        // TODO: mostrar bottom sheet de filtros por categoría
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    _FilterButton(
+                      label: 'Reciente',
+                      active: _showRecent,
+                      onTap: () => setState(() => _showRecent = !_showRecent),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── Badge Grid — mock ──────────────────────────────
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.85,
+                  ),
+                  itemCount: _mockBadges.length,
+                  itemBuilder: (_, i) => _BadgeCard(data: _mockBadges[i]),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -251,6 +276,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 // ---------------------------------------------------------------------------
 
 class _AchievementsHeader extends StatelessWidget {
+  const _AchievementsHeader({required this.coins});
+
+  final int coins;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -268,7 +297,7 @@ class _AchievementsHeader extends StatelessWidget {
         children: [
           Text('Duukar', style: AppTextStyles.titleAppBar),
           const Spacer(),
-          // Coin circle
+          // Coin circle — real value from profile
           Container(
             width: 44,
             height: 44,
@@ -289,8 +318,7 @@ class _AchievementsHeader extends StatelessWidget {
                 children: [
                   const Text('🪙', style: TextStyle(fontSize: 12)),
                   Text(
-                    '120',
-                    // TODO: obtener monedas de UserRepository
+                    '$coins',
                     style: AppTextStyles.labelSmall.copyWith(
                       color: Colors.white,
                       fontFamily: 'Fredoka',
@@ -426,7 +454,9 @@ class _LevelCard extends StatelessWidget {
               value: progress,
               minHeight: 10,
               backgroundColor: const Color(0xFFE9F2FA),
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.primary,
+              ),
             ),
           ),
         ],
@@ -636,9 +666,7 @@ class _BadgeCard extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: data.isUnlocked
-                      ? data.bgColor
-                      : AppColors.muted,
+                  color: data.isUnlocked ? data.bgColor : AppColors.muted,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

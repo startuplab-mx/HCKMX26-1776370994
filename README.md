@@ -8,14 +8,15 @@ Duukar es una aplicación móvil de prevención digital para niñas, niños y ad
 
 ## Problema que resuelve
 
-Niñas, niños y adolescentes están expuestos a riesgos digitales cada vez más complejos: grooming, manipulación emocional, estafas, falsas promesas de dinero, retos peligrosos y contenido que romantiza dinámicas dañinas. Muchas veces estos riesgos no se presentan como amenazas directas, sino como oportunidades atractivas, vínculos afectivos o contenido aspiracional.
+El crecimiento del uso de plataformas digitales por parte de menores ha incrementado su exposición a interacciones riesgosas, como el grooming y la manipulación mediante falsas promesas. Sin embargo, estas amenazas operan de forma gradual y sofisticada, lo que dificulta que niñas, niños y adolescentes las identifiquen por sí mismos.
 
-Los controles parentales tradicionales no siempre funcionan en estos contextos, especialmente cuando:
+Actualmente, no existen herramientas accesibles y adaptadas a su edad que les permitan:
 
-- el menor no quiere sentirse vigilado,
-- no existe una red de apoyo cercana o funcional,
-- el riesgo aparece en plataformas y formatos muy diversos,
-- la manipulación se disfraza de ayuda, pertenencia, fama o dinero fácil.
+- reconocer señales de peligro en tiempo real,
+- comprender por qué una interacción es riesgosa,
+- tomar decisiones seguras de manera autónoma.
+
+Esta falta de comprensión y guía inmediata deja a los menores en una posición de alta vulnerabilidad frente a riesgos digitales.
 
 Duukar propone un enfoque distinto: **prevención no invasiva**, aprendizaje activo y análisis bajo demanda. En lugar de vigilar permanentemente al usuario, la aplicación le enseña a reconocer señales de riesgo y le permite consultar a Duki cuando algo le genera dudas.
 

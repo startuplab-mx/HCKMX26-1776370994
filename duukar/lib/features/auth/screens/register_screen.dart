@@ -56,9 +56,59 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         );
     if (!mounted) return;
     if (ok) {
-      // TODO: navegar a verify-account si Supabase requiere confirmación de email
-      context.go(AppRoutes.introDuki);
+      _showSuccessDialog();
     }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Mascot
+            Image.asset(
+              'assets/img/duuki_frente.png',
+              height: 120,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '¡Cuenta creada!',
+              style: AppTextStyles.headlineMedium.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w900,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '¡Qué alegría tenerte aquí! Ya puedes iniciar sesión para empezar a aprender con Duki.',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: PrimaryButton(
+                label: '¡Vamos!',
+                onPressed: () {
+                  Navigator.of(context).pop(); // Cierra el diálogo
+                  if (this.mounted) {
+                    this.context.go(AppRoutes.login);
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
