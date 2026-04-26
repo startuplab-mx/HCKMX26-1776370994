@@ -15,31 +15,36 @@ class AppBottomNav extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   static const _items = [
-    _NavItem(icon: Icons.home_rounded, label: 'Inicio'),
-    _NavItem(icon: Icons.search_rounded, label: 'Analizar'),
+    _NavItem(icon: Icons.school_rounded, label: 'Aprender'),
+    _NavItem(icon: Icons.help_outline_rounded, label: 'Duki'),
     _NavItem(icon: Icons.flag_rounded, label: 'Reportar'),
-    _NavItem(icon: Icons.emoji_events_rounded, label: 'Logros'),
-    _NavItem(icon: Icons.person_rounded, label: 'Perfil'),
+    _NavItem(icon: Icons.star_rounded, label: 'Recompensas'),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.card,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: AppColors.border.withOpacity(0.5),
+            width: 1,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 16,
-            offset: const Offset(0, -4),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, -8),
           ),
         ],
       ),
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height: 64,
+        child: Container(
+          height: 72,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(_items.length, (i) {
@@ -77,33 +82,40 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? AppColors.primary : AppColors.textSecondary;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 64,
+    final activeColor = AppColors.primary;
+    final inactiveColor = AppColors.textSecondary.withOpacity(0.6);
+    
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        splashColor: AppColors.primary.withOpacity(0.05),
+        highlightColor: Colors.transparent,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              duration: const Duration(milliseconds: 250),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
                 color: active
-                    ? AppColors.primary.withOpacity(0.12)
+                    ? AppColors.primary.withOpacity(0.1)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Icon(item.icon, color: color, size: 24),
+              child: Icon(
+                item.icon,
+                color: active ? activeColor : inactiveColor,
+                size: 26,
+              ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(
               item.label,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: color,
+              style: AppTextStyles.labelSmall.copyWith(
+                color: active ? activeColor : inactiveColor,
                 fontSize: 10,
-                fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                fontWeight: active ? FontWeight.bold : FontWeight.w500,
+                letterSpacing: 0.2,
               ),
             ),
           ],

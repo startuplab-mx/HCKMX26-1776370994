@@ -13,7 +13,11 @@ import '../features/lessons/screens/mandatory_lesson_1_screen.dart';
 import '../features/lessons/screens/mandatory_lesson_2_screen.dart';
 import '../features/lessons/screens/mandatory_lesson_3_screen.dart';
 import '../features/lessons/screens/reward_screen.dart';
+import '../features/home/screens/home_kids_screen.dart';
+import '../features/analysis/screens/ask_duki_screen.dart';
 
+import '../core/utils/nav_helper.dart';
+import '../core/widgets/app_bottom_nav.dart';
 import 'theme/app_text_styles.dart';
 
 class AppRoutes {
@@ -115,11 +119,10 @@ final GoRouter appRouter = GoRouter(
     ),
 
     // ── Home ─────────────────────────────────────────────────────────
-    _placeholder(
-      AppRoutes.homeKids,
-      'home-kids',
-      'Home 6-11',
-      'Inicio infantil',
+    GoRoute(
+      path: AppRoutes.homeKids,
+      name: 'home-kids',
+      builder: (_, __) => const HomeKidsScreen(),
     ),
     _placeholder(
       AppRoutes.homeTeens,
@@ -129,11 +132,11 @@ final GoRouter appRouter = GoRouter(
     ),
 
     // ── Features ─────────────────────────────────────────────────────
-    _placeholder(
-      AppRoutes.askDuki,
-      'ask-duki',
-      'Pregúntale a Duki',
-      'Consulta a Duki',
+    // Tab-root for Ask Duki — real implementation with tutorial flow.
+    GoRoute(
+      path: AppRoutes.askDuki,
+      name: 'ask-duki',
+      builder: (_, __) => const AskDukiScreen(),
     ),
     _placeholder(
       AppRoutes.analysisType,
@@ -153,7 +156,8 @@ final GoRouter appRouter = GoRouter(
       'Resultado',
       'Riesgo, señales y explicación',
     ),
-    _placeholder(
+    // Tab-root for Reportar
+    _navPlaceholder(
       AppRoutes.reportForm,
       'report-form',
       'Reportar',
@@ -165,7 +169,8 @@ final GoRouter appRouter = GoRouter(
       'Historial de reportes',
       'Reportes enviados',
     ),
-    _placeholder(
+    // Tab-root for Recompensas
+    _navPlaceholder(
       AppRoutes.achievements,
       'achievements',
       'Logros',
@@ -201,6 +206,26 @@ GoRoute _placeholder(String path, String name, String title, String subtitle) {
   );
 }
 
+/// Placeholder for screens that are tab-roots in the bottom nav.
+/// Shows [AppBottomNav] so users can navigate back to other tabs.
+GoRoute _navPlaceholder(
+  String path,
+  String name,
+  String title,
+  String subtitle,
+) {
+  return GoRoute(
+    path: path,
+    name: name,
+    builder: (context, state) =>
+        _NavPlaceholderScreen(title: title, subtitle: subtitle),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Placeholder screens
+// ---------------------------------------------------------------------------
+
 class _RoutePlaceholderScreen extends StatelessWidget {
   const _RoutePlaceholderScreen({required this.title, required this.subtitle});
 
@@ -211,6 +236,59 @@ class _RoutePlaceholderScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(title, style: AppTextStyles.headlineMedium),
+                    const SizedBox(height: 12),
+                    Text(
+                      subtitle,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodyLarge,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      '🚧 En construcción',
+                      style: TextStyle(fontSize: 24),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Like [_RoutePlaceholderScreen] but includes [AppBottomNav].
+/// Used for the three non-home tab-root routes so navigation is consistent.
+class _NavPlaceholderScreen extends StatelessWidget {
+  const _NavPlaceholderScreen({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final currentIndex = NavHelper.indexForLocation(
+      GoRouterState.of(context).uri.toString(),
+    );
+
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      bottomNavigationBar: AppBottomNav(
+        currentIndex: currentIndex < 0 ? 0 : currentIndex,
+        onTap: (i) => NavHelper.goToTab(context, i),
+      ),
       body: SafeArea(
         child: Center(
           child: Padding(
