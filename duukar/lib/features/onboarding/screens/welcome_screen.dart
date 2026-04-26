@@ -6,8 +6,6 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/widgets/primary_button.dart';
 
-/// Pantalla de bienvenida — primer contacto después del splash.
-/// Ofrece "Crear cuenta" y "Ya tengo cuenta" (login).
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
@@ -60,7 +58,6 @@ class WelcomeScreen extends StatelessWidget {
 
               PrimaryButton(
                 label: 'Continuar',
-                // variant: PrimaryButtonVariant.outline,
                 onPressed: () => context.go(AppRoutes.login),
               ),
 

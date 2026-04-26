@@ -9,6 +9,11 @@ import '../features/onboarding/screens/intro_duki_screen.dart';
 import '../features/onboarding/screens/navigation_tutorial_screen.dart';
 import '../features/onboarding/screens/splash_screen.dart';
 import '../features/onboarding/screens/welcome_screen.dart';
+import '../features/lessons/screens/mandatory_lesson_1_screen.dart';
+import '../features/lessons/screens/mandatory_lesson_2_screen.dart';
+import '../features/lessons/screens/mandatory_lesson_3_screen.dart';
+import '../features/lessons/screens/reward_screen.dart';
+
 import 'theme/app_text_styles.dart';
 
 class AppRoutes {
@@ -88,29 +93,25 @@ final GoRouter appRouter = GoRouter(
     ),
 
     // ── Lessons & Post-onboarding (placeholders) ─────────────────────
-    _placeholder(
-      AppRoutes.mandatoryLesson1,
-      'mandatory-lesson-1',
-      'Lección 1',
-      'Clase obligatoria inicial',
+    GoRoute(
+      path: AppRoutes.mandatoryLesson1,
+      name: 'mandatory-lesson-1',
+      builder: (_, __) => const MandatoryLesson1Screen(),
     ),
-    _placeholder(
-      AppRoutes.mandatoryLesson2,
-      'mandatory-lesson-2',
-      'Lección 2',
-      'Señales de alerta',
+    GoRoute(
+      path: AppRoutes.mandatoryLesson2,
+      name: 'mandatory-lesson-2',
+      builder: (_, __) => const MandatoryLesson2Screen(),
     ),
-    _placeholder(
-      AppRoutes.mandatoryLesson3,
-      'mandatory-lesson-3',
-      'Lección 3',
-      'Decisiones seguras',
+    GoRoute(
+      path: AppRoutes.mandatoryLesson3,
+      name: 'mandatory-lesson-3',
+      builder: (_, __) => const MandatoryLesson3Screen(),
     ),
-    _placeholder(
-      AppRoutes.reward,
-      'reward',
-      'Recompensa',
-      'Primera misión completada',
+    GoRoute(
+      path: AppRoutes.reward,
+      name: 'reward',
+      builder: (_, __) => const RewardScreen(),
     ),
 
     // ── Home ─────────────────────────────────────────────────────────

@@ -288,19 +288,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                 ),
               ),
-
-              const SizedBox(height: 24),
-              
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('POLÍTICA DE PRIVACIDAD', style: AppTextStyles.labelSmall.copyWith(fontSize: 10, color: AppColors.textSecondary)),
-                  const SizedBox(width: 20),
-                  Text('TÉRMINOS Y CONDICIONES', style: AppTextStyles.labelSmall.copyWith(fontSize: 10, color: AppColors.textSecondary)),
-                ],
-              ),
-              const SizedBox(height: 10),
-            ],
+            ],    
           ),
         ),
       ),
