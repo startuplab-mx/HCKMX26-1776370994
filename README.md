@@ -181,4 +181,5 @@ Duukar prioriza un enfoque de **prevención no invasiva**. La aplicación no est
 ## Video y diseño
 
 Youtube: https://youtube.com/shorts/l-QNzMaEcEE?si=iieG-x_UmZ694UgG
+
 Figma: https://www.figma.com/design/1NOJsstvl425LRI2JEcBkL/Duukar?node-id=29-58&t=8Wi60SXuLyRgORqg-1
