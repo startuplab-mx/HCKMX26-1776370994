@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/auth/screens/forgot_password_screen.dart';
 import '../features/auth/screens/login_screen.dart';
@@ -21,6 +22,7 @@ import '../features/reports/screens/report_form_screen.dart';
 import '../features/rewards/screens/achievements_screen.dart';
 
 import '../core/utils/nav_helper.dart';
+import '../core/utils/router_refresh_stream.dart';
 import '../core/widgets/app_bottom_nav.dart';
 import 'theme/app_text_styles.dart';
 
@@ -53,8 +55,68 @@ class AppRoutes {
   static const settings = '/settings';
 }
 
+// ---------------------------------------------------------------------------
+// Protected routes — kick unauthenticated users back to login/welcome.
+// Public routes that authenticated users should not revisit.
+// ---------------------------------------------------------------------------
+
+/// Routes that require a valid Supabase session.
+const _protectedRoutes = {
+  AppRoutes.homeKids,
+  AppRoutes.homeTeens,
+  AppRoutes.askDuki,
+  AppRoutes.analysisResult,
+  AppRoutes.reportForm,
+  AppRoutes.achievements,
+  AppRoutes.mandatoryLesson1,
+  AppRoutes.mandatoryLesson2,
+  AppRoutes.mandatoryLesson3,
+  AppRoutes.reward,
+  AppRoutes.introDuki,
+  AppRoutes.navigationTutorial,
+  AppRoutes.shop,
+  AppRoutes.progress,
+  AppRoutes.settings,
+  AppRoutes.reportsHistory,
+};
+
+/// Routes that are only meaningful for unauthenticated users.
+const _authOnlyRoutes = {
+  AppRoutes.login,
+  AppRoutes.register,
+  AppRoutes.forgotPassword,
+  AppRoutes.verifyAccount,
+  AppRoutes.welcome,
+};
+
+// Single global instance of the refresh notifier.
+// Created once and kept alive so it is never garbage-collected.
+final _authRefreshNotifier = GoRouterRefreshStream(
+  Supabase.instance.client.auth.onAuthStateChange,
+);
+
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
+  // Re-runs redirect every time Supabase fires an auth event (sign-in / sign-out).
+  refreshListenable: _authRefreshNotifier,
+  redirect: (context, state) {
+    final location = state.uri.path;
+    final isLoggedIn = Supabase.instance.client.auth.currentUser != null;
+
+    // If the user just signed out and is on a protected route → send to login.
+    if (!isLoggedIn && _protectedRoutes.contains(location)) {
+      return AppRoutes.login;
+    }
+
+    // If the user is logged in and tries to reach a pure-auth route → home.
+    // (Splash handles its own logic so we leave it alone.)
+    if (isLoggedIn && _authOnlyRoutes.contains(location)) {
+      // Let splash do the heavy routing; redirect only for direct auth-page hits.
+      return null; // no-op — login/register may still be reached if desired
+    }
+
+    return null; // no redirect needed
+  },
   routes: [
     // ── Onboarding ──────────────────────────────────────────────────
     GoRoute(

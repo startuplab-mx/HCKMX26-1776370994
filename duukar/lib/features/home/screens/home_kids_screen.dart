@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/utils/nav_helper.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
+import '../../../core/widgets/profile_bottom_sheet.dart';
 import '../../../core/widgets/section_card.dart';
+import '../../profile/profile_controller.dart';
+import '../../profile/profile_model.dart';
 
 // ---------------------------------------------------------------------------
 // Mock data models — swap out for real data later
@@ -35,11 +39,9 @@ class _MilestoneData {
 }
 
 // ---------------------------------------------------------------------------
-// Constants
+// Constants (mock data — not yet backend-driven)
 // ---------------------------------------------------------------------------
 
-const _kChildName = 'Juanito';
-const _kCoins = 120;
 const _kLessonsCompleted = 3;
 const _kLessonsTotal = 8;
 const _kProgressPercent = 0.37; // 37 %
@@ -88,20 +90,23 @@ final _milestones = <_MilestoneData>[
 // ---------------------------------------------------------------------------
 
 /// Pantalla principal para el segmento infantil (6–11 años).
-/// Datos locales de prueba — sin backend aún.
-class HomeKidsScreen extends StatefulWidget {
+/// Carga datos de perfil reales desde Supabase; mantiene cápsulas mock.
+class HomeKidsScreen extends ConsumerStatefulWidget {
   const HomeKidsScreen({super.key});
 
   @override
-  State<HomeKidsScreen> createState() => _HomeKidsScreenState();
+  ConsumerState<HomeKidsScreen> createState() => _HomeKidsScreenState();
 }
 
-class _HomeKidsScreenState extends State<HomeKidsScreen> {
+class _HomeKidsScreenState extends ConsumerState<HomeKidsScreen> {
   @override
   Widget build(BuildContext context) {
     final currentIndex = NavHelper.indexForLocation(
       GoRouterState.of(context).uri.toString(),
     );
+
+    // Watch the profile async provider.
+    final profileAsync = ref.watch(profileProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -111,64 +116,77 @@ class _HomeKidsScreenState extends State<HomeKidsScreen> {
         onTap: (i) => NavHelper.goToTab(context, i),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header ──────────────────────────────────────────────
-              _Header(coins: _kCoins),
-
-              const Divider(color: AppColors.border, height: 1, thickness: 1),
-
-              // ── Hero ────────────────────────────────────────────────
-              _HeroSection(childName: _kChildName),
-
-              const SizedBox(height: 8),
-
-              // ── Mi camino ───────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _MiCaminoCard(
-                  completed: _kLessonsCompleted,
-                  total: _kLessonsTotal,
-                  progress: _kProgressPercent,
-                  milestones: _milestones,
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // ── Cápsulas para hoy ───────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _CapsulasSectionHeader(
-                  onVerTodas: () {
-                    // TODO: navegar a listado completo
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Horizontal scroll — sin padding horizontal para que los
-              // cards aparezcan al ras y el primer card tenga el margen
-              // desde la izquierda.
-              SizedBox(
-                height: 188,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: _capsules.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (_, i) => _CapsuleCard(data: _capsules[i]),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-            ],
-          ),
+        child: profileAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => _buildContent(context, null),
+          data: (profile) => _buildContent(context, profile),
         ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, UserProfile? profile) {
+    // Use real values when available; fall back gracefully.
+    final childName = profile?.nickname ?? 'Explorador';
+    final coins = profile?.coins ?? 0;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header ──────────────────────────────────────────────
+          _Header(
+            coins: coins,
+            onAvatarTap: () => showProfileBottomSheet(context),
+          ),
+
+          const Divider(color: AppColors.border, height: 1, thickness: 1),
+
+          // ── Hero ────────────────────────────────────────────────
+          _HeroSection(childName: childName),
+
+          const SizedBox(height: 8),
+
+          // ── Mi camino ───────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _MiCaminoCard(
+              completed: _kLessonsCompleted,
+              total: _kLessonsTotal,
+              progress: _kProgressPercent,
+              milestones: _milestones,
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // ── Cápsulas para hoy ───────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _CapsulasSectionHeader(
+              onVerTodas: () {
+                // TODO: navegar a listado completo
+              },
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Horizontal scroll
+          SizedBox(
+            height: 188,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: _capsules.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (_, i) => _CapsuleCard(data: _capsules[i]),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }
@@ -179,9 +197,10 @@ class _HomeKidsScreenState extends State<HomeKidsScreen> {
 // ---------------------------------------------------------------------------
 
 class _Header extends StatelessWidget {
-  const _Header({required this.coins});
+  const _Header({required this.coins, required this.onAvatarTap});
 
   final int coins;
+  final VoidCallback onAvatarTap;
 
   @override
   Widget build(BuildContext context) {
@@ -230,19 +249,22 @@ class _Header extends StatelessWidget {
 
           const SizedBox(width: 10),
 
-          // Avatar circular placeholder
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primaryLight,
-              border: Border.all(color: AppColors.primary, width: 2),
-            ),
-            child: const Icon(
-              Icons.person_rounded,
-              color: AppColors.primary,
-              size: 22,
+          // Avatar circular — tappable para abrir el perfil
+          GestureDetector(
+            onTap: onAvatarTap,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryLight,
+                border: Border.all(color: AppColors.primary, width: 2),
+              ),
+              child: const Icon(
+                Icons.person_rounded,
+                color: AppColors.primary,
+                size: 22,
+              ),
             ),
           ),
         ],
