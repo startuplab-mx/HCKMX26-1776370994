@@ -772,14 +772,17 @@ class _DukiShopBanner extends StatelessWidget {
               ),
             ),
 
-            // Duki image peeking from right
+            // Duki image centrada verticalmente a la derecha
             Positioned(
-              right: -6,
+              right: 4,
+              top: 0,
               bottom: 0,
-              child: Image.asset(
-                'assets/img/duuki_frente.png',
-                height: 105,
-                fit: BoxFit.contain,
+              child: Center(
+                child: Image.asset(
+                  'assets/img/duki_modista.png',
+                  height: 100,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
 

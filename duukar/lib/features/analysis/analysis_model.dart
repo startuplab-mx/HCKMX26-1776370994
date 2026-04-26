@@ -46,6 +46,18 @@ enum RiskLevel {
         return 'Riesgo alto';
     }
   }
+
+  /// Short, friendly label for the kid-facing hero card.
+  String get kidLabel {
+    switch (this) {
+      case RiskLevel.low:
+        return '¡Todo bien! 😊';
+      case RiskLevel.medium:
+        return 'Ojo con esto 🤔';
+      case RiskLevel.high:
+        return '¡Cuidado! 🚨';
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +75,9 @@ class AnalysisResult {
     this.detectedTerms = const [],
     this.categories = const [],
     this.minorAdvice = const [],
+    this.kidMessage = '',
+    this.kidExplanation = '',
+    this.kidActions = const [],
   });
 
   /// Risk level: low / medium / high.
@@ -71,13 +86,13 @@ class AnalysisResult {
   /// 0–100 numeric risk score.
   final int score;
 
-  /// Short detected warning signals (AI-generated).
+  /// Short detected warning signals (AI-generated, internal/technical).
   final List<String> signals;
 
-  /// Detailed explanation oriented to the child/teen.
+  /// Detailed explanation — internal/technical, oriented to context analysis.
   final String explanation;
 
-  /// Concrete recommended steps the user should take.
+  /// Concrete recommended steps (internal version, may use adult language).
   final List<String> recommendedActions;
 
   /// One-line summary suitable for a card/list view.
@@ -99,6 +114,26 @@ class AnalysisResult {
   /// relevant categories are detected. Empty for low-risk / no-signal results.
   final List<String> minorAdvice;
 
+  // ── Kid-facing fields (visible output for children 6–11) ──────────────
+
+  /// Very short headline message from Duki directed to the child.
+  ///
+  /// E.g. "Esto se ve raro." / "Parece una trampa." / "¡Todo bien!"
+  /// One or two short sentences, warm and direct. No technical language.
+  final String kidMessage;
+
+  /// Brief child-friendly explanation of what Duki noticed.
+  ///
+  /// Plain Spanish for ages 6–11. No alarmist tone. Reassuring.
+  /// E.g. "Esta persona pregunta muchas cosas raras y pide que
+  /// no le cuentes a nadie. Eso no es normal."
+  final String kidExplanation;
+
+  /// 2–4 concrete, simple actions the child can take right now.
+  ///
+  /// E.g. ["No respondas todavía.", "Mostráselo a un adulto de confianza."]
+  final List<String> kidActions;
+
   // ── Computed helpers ──────────────────────────────────────────────────
 
   /// True if the pre-analysis found any matching risk terms.
@@ -106,6 +141,9 @@ class AnalysisResult {
 
   /// True if child safety advice is available.
   bool get hasMinorAdvice => minorAdvice.isNotEmpty;
+
+  /// True if kid-facing fields are populated.
+  bool get hasKidContent => kidMessage.isNotEmpty || kidExplanation.isNotEmpty;
 
   // ── JSON parsing ──────────────────────────────────────────────────────
 
@@ -117,6 +155,10 @@ class AnalysisResult {
       explanation: json['explanation'] as String? ?? '',
       recommendedActions: _parseStringList(json['recommended_actions']),
       summary: json['summary'] as String? ?? '',
+      // kid-facing fields — returned by OpenAI in the same JSON response
+      kidMessage: json['kid_message'] as String? ?? '',
+      kidExplanation: json['kid_explanation'] as String? ?? '',
+      kidActions: _parseStringList(json['kid_actions']),
       // detectedTerms, categories, minorAdvice are injected by the repository
       // after pre-analysis; they are not expected in the AI JSON response.
     );
@@ -150,6 +192,10 @@ class AnalysisResult {
       detectedTerms: detectedTerms,
       categories: categories,
       minorAdvice: minorAdvice,
+      // Preserve kid-facing fields unchanged
+      kidMessage: kidMessage,
+      kidExplanation: kidExplanation,
+      kidActions: kidActions,
     );
   }
 
@@ -177,6 +223,9 @@ class AnalysisResult {
       'recommended_actions': recommendedActions,
       if (detectedTerms.isNotEmpty) 'detected_terms': detectedTerms,
       if (categories.isNotEmpty) 'categories': categories,
+      if (kidMessage.isNotEmpty) 'kid_message': kidMessage,
+      if (kidExplanation.isNotEmpty) 'kid_explanation': kidExplanation,
+      if (kidActions.isNotEmpty) 'kid_actions': kidActions,
     };
   }
 }
