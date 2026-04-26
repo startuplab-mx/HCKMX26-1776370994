@@ -21,39 +21,39 @@ class _NavigationTutorialScreenState extends State<NavigationTutorialScreen> {
 
   static const _sections = [
     _Section(
-      icon: Icons.home_rounded,
+      icon: Icons.school_outlined,
       color: Color(0xFF6ECBF5),
-      title: 'Inicio',
+      title: 'Aprender',
       description:
-          'Tu panel principal. Aquí verás tu nivel, racha diaria y las misiones disponibles.',
+          'Aquí verás tu progreso, pero lo principal son las cápsulas educativas para convertirte en experto.',
     ),
     _Section(
-      icon: Icons.search_rounded,
-      color: Color(0xFF8B6EF5),
-      title: 'Analizar',
+      icon: Icons.help_outline_rounded,
+      color: Color(0xFF6ECBF5),
+      title: 'Duki',
       description:
           'Envíale a Duki una captura, enlace o texto para saber si hay algo sospechoso.',
     ),
     _Section(
-      icon: Icons.flag_rounded,
+      icon: Icons.flag_outlined,
       color: Color(0xFFE35D6A),
       title: 'Reportar',
       description:
           'Encontraste algo peligroso en línea. Repórtalo aquí para ayudar a otros.',
     ),
     _Section(
-      icon: Icons.emoji_events_rounded,
-      color: Color(0xFFF4B740),
-      title: 'Logros',
+      icon: Icons.star_outline_rounded,
+      color: Color(0xFF6ECBF5),
+      title: 'Recompensas',
       description:
           'Tus insignias, puntos y recompensas cosméticas. ¡Colecciónalos todos!',
     ),
     _Section(
-      icon: Icons.person_rounded,
+      icon: Icons.account_circle_outlined,
       color: Color(0xFF46B97A),
       title: 'Perfil',
       description:
-          'Ajusta tu apariencia, configura tu cuenta y controla tu privacidad.',
+          'Podrás acceder a tu perfil desde la parte superior izquierda de la pantalla principal.',
     ),
   ];
 
@@ -215,11 +215,11 @@ class _NavigationTutorialScreenState extends State<NavigationTutorialScreen> {
 
   String _dukiMessage(int step) {
     const messages = [
-      '¡Aquí verás todo lo que pasa! Tu base de operaciones.',
+      '¡Aquí están las cápsulas! Aprenderemos juntos sobre seguridad.',
       'Mándame lo que sea sospechoso. Soy muy bueno detectando trampas.',
       'Reportar hace que todos estemos más seguros. ¡Eres un héroe!',
-      'Cada misión te da puntos. ¡Colecciona todas las insignias!',
-      'Tu perfil, tus reglas. Siempre en control.',
+      '¡Mira cuántas estrellas! Colecciona todas las recompensas.',
+      'Tu perfil está arriba a la izquierda. ¡Allí podrás ver tus datos!',
     ];
     return messages[step];
   }
