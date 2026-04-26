@@ -60,6 +60,9 @@ class AnalysisResult {
     required this.explanation,
     required this.recommendedActions,
     required this.summary,
+    this.detectedTerms = const [],
+    this.categories = const [],
+    this.minorAdvice = const [],
   });
 
   /// Risk level: low / medium / high.
@@ -68,7 +71,7 @@ class AnalysisResult {
   /// 0–100 numeric risk score.
   final int score;
 
-  /// Short detected warning signals.
+  /// Short detected warning signals (AI-generated).
   final List<String> signals;
 
   /// Detailed explanation oriented to the child/teen.
@@ -80,7 +83,31 @@ class AnalysisResult {
   /// One-line summary suitable for a card/list view.
   final String summary;
 
-  // ── JSON parsing ────────────────────────────────────────────────────────
+  /// Terms/hashtags/emojis pre-detected in the input before calling the AI.
+  ///
+  /// These are the raw matched terms from [kRiskSignals]. They are included
+  /// here for display and context — they do NOT automatically elevate risk.
+  final List<String> detectedTerms;
+
+  /// Deduplicated signal categories detected in the input
+  /// (e.g. 'narcocultura', 'reclutamiento', 'manipulacion').
+  final List<String> categories;
+
+  /// Child-appropriate safety advice in Spanish, selected based on context.
+  ///
+  /// Populated from [kChildSafetyAdvice] / [kRecruitmentAdvice] when
+  /// relevant categories are detected. Empty for low-risk / no-signal results.
+  final List<String> minorAdvice;
+
+  // ── Computed helpers ──────────────────────────────────────────────────
+
+  /// True if the pre-analysis found any matching risk terms.
+  bool get hasDetectedTerms => detectedTerms.isNotEmpty;
+
+  /// True if child safety advice is available.
+  bool get hasMinorAdvice => minorAdvice.isNotEmpty;
+
+  // ── JSON parsing ──────────────────────────────────────────────────────
 
   factory AnalysisResult.fromJson(Map<String, dynamic> json) {
     return AnalysisResult(
@@ -90,6 +117,8 @@ class AnalysisResult {
       explanation: json['explanation'] as String? ?? '',
       recommendedActions: _parseStringList(json['recommended_actions']),
       summary: json['summary'] as String? ?? '',
+      // detectedTerms, categories, minorAdvice are injected by the repository
+      // after pre-analysis; they are not expected in the AI JSON response.
     );
   }
 
@@ -103,6 +132,25 @@ class AnalysisResult {
         .trim();
     final map = jsonDecode(cleaned) as Map<String, dynamic>;
     return AnalysisResult.fromJson(map);
+  }
+
+  /// Return a copy with the pre-analysis context fields populated.
+  AnalysisResult withContext({
+    required List<String> detectedTerms,
+    required List<String> categories,
+    required List<String> minorAdvice,
+  }) {
+    return AnalysisResult(
+      riskLevel: riskLevel,
+      score: score,
+      signals: signals,
+      explanation: explanation,
+      recommendedActions: recommendedActions,
+      summary: summary,
+      detectedTerms: detectedTerms,
+      categories: categories,
+      minorAdvice: minorAdvice,
+    );
   }
 
   static List<String> _parseStringList(dynamic value) {
@@ -127,6 +175,8 @@ class AnalysisResult {
       'explanation': explanation,
       'signals': signals,
       'recommended_actions': recommendedActions,
+      if (detectedTerms.isNotEmpty) 'detected_terms': detectedTerms,
+      if (categories.isNotEmpty) 'categories': categories,
     };
   }
 }

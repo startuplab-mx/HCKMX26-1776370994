@@ -53,6 +53,15 @@ class AnalysisResultScreen extends StatelessWidget {
                       ),
                     ),
 
+                    // Pre-detected risk terms (only when found)
+                    if (result.hasDetectedTerms) ...[
+                      const SizedBox(height: 16),
+                      _DetectedTermsCard(
+                        terms: result.detectedTerms,
+                        categories: result.categories,
+                      ),
+                    ],
+
                     if (result.signals.isNotEmpty) ...[
                       const SizedBox(height: 16),
                       _SignalsList(signals: result.signals),
@@ -61,6 +70,12 @@ class AnalysisResultScreen extends StatelessWidget {
                     if (result.recommendedActions.isNotEmpty) ...[
                       const SizedBox(height: 16),
                       _ActionsList(actions: result.recommendedActions),
+                    ],
+
+                    // Child safety advice (only for medium/high or when terms detected)
+                    if (result.hasMinorAdvice) ...[
+                      const SizedBox(height: 16),
+                      _MinorAdviceCard(advice: result.minorAdvice),
                     ],
 
                     const SizedBox(height: 24),
@@ -302,6 +317,119 @@ class _RiskHeroCard extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
+// _DetectedTermsCard
+// ---------------------------------------------------------------------------
+
+/// Shown only when pre-analysis found matching risk terms in the text input.
+///
+/// Displays them as chips with a soft amber tint, alongside a disclaimer
+/// that presence alone doesn't mean danger.
+class _DetectedTermsCard extends StatelessWidget {
+  const _DetectedTermsCard({required this.terms, required this.categories});
+
+  final List<String> terms;
+  final List<String> categories;
+
+  String get _categoryLabel {
+    if (categories.isEmpty) return '';
+    final labels = {
+      'narcocultura': 'narcocultura',
+      'reclutamiento': 'reclutamiento',
+      'manipulacion': 'manipulación',
+      'secretismo': 'secretismo',
+      'trampa_dinero': 'trampa de dinero',
+      'normalizacion': 'normalización',
+      'simbolo_riesgo': 'símbolo de riesgo',
+      'codigo': 'código',
+    };
+    return categories.map((c) => labels[c] ?? c).toSet().join(', ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E1), // warm amber tint
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFFE082)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.travel_explore_rounded,
+                size: 18,
+                color: Color(0xFFBF8A00),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Términos detectados',
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: const Color(0xFFBF8A00),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // Chips
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: terms
+                .map(
+                  (t) => Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFECB3),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: const Color(0xFFFFCA28).withOpacity(0.7),
+                      ),
+                    ),
+                    child: Text(
+                      t,
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: const Color(0xFF7A5700),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          if (_categoryLabel.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              'Contexto: $_categoryLabel',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: const Color(0xFF7A5700),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
+          Text(
+            '⚠️ Estos términos son señales de contexto, no una condena. '
+            'Duki consideró el conjunto del mensaje para su análisis.',
+            style: AppTextStyles.bodySmall.copyWith(
+              color: const Color(0xFF7A5700),
+              height: 1.45,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // _SignalsList
 // ---------------------------------------------------------------------------
 
@@ -391,6 +519,77 @@ class _ActionsList extends StatelessWidget {
             ),
           );
         }),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// _MinorAdviceCard
+// ---------------------------------------------------------------------------
+
+/// Surfaces age-appropriate safety advice when medium/high risk or
+/// recruitment/manipulation signals are detected.
+class _MinorAdviceCard extends StatelessWidget {
+  const _MinorAdviceCard({required this.advice});
+
+  final List<String> advice;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F5E9), // soft green
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFA5D6A7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('🛡️', style: TextStyle(fontSize: 16)),
+              const SizedBox(width: 8),
+              Text(
+                'Consejos para cuidarte',
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: const Color(0xFF2E7D32),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...advice.map(
+            (tip) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 4),
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      size: 14,
+                      color: Color(0xFF43A047),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      tip,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: const Color(0xFF1B5E20),
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

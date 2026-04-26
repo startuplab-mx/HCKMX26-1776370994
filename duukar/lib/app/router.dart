@@ -18,6 +18,7 @@ import '../features/analysis/screens/ask_duki_screen.dart';
 import '../features/analysis/screens/analysis_result_screen.dart';
 import '../features/analysis/analysis_model.dart';
 import '../features/reports/screens/report_form_screen.dart';
+import '../features/rewards/screens/achievements_screen.dart';
 
 import '../core/utils/nav_helper.dart';
 import '../core/widgets/app_bottom_nav.dart';
@@ -181,11 +182,10 @@ final GoRouter appRouter = GoRouter(
       'Reportes enviados',
     ),
     // Tab-root for Recompensas
-    _navPlaceholder(
-      AppRoutes.achievements,
-      'achievements',
-      'Logros',
-      'Insignias y avance',
+    GoRoute(
+      path: AppRoutes.achievements,
+      name: 'achievements',
+      builder: (_, __) => const AchievementsScreen(),
     ),
     _placeholder(
       AppRoutes.shop,
