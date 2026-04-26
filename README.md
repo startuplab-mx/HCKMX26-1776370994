@@ -178,12 +178,7 @@ Duukar prioriza un enfoque de **prevención no invasiva**. La aplicación no est
 
 ---
 
-## Pendientes de validación al cierre
+## Video y diseño
 
-Antes de la entrega final, esta documentación debe revisarse para confirmar:
-
-- herramientas efectivamente implementadas,
-- dependencias finales del proyecto,
-- flujo exacto del MVP entregado,
-- configuración real de ejecución,
-- grado final de uso de IA en producto y desarrollo.
+Youtube: https://youtube.com/shorts/l-QNzMaEcEE?si=iieG-x_UmZ694UgG
+Figma: https://www.figma.com/design/1NOJsstvl425LRI2JEcBkL/Duukar?node-id=29-58&t=8Wi60SXuLyRgORqg-1
