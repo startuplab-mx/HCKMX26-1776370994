@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/constants/app_supabase.dart';
 import '../../../core/widgets/primary_button.dart';
 
 /// Pantalla de recompensas: Aparece al completar misiones o lecciones importantes.
@@ -12,6 +13,7 @@ class RewardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final homeRoute = AppSupabase.homeRouteForCurrentUser();
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -21,9 +23,12 @@ class RewardScreen extends StatelessWidget {
             Align(
               alignment: Alignment.topRight,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 8,
+                ),
                 child: TextButton(
-                  onPressed: () => context.go(AppRoutes.homeKids),
+                  onPressed: () => context.go(homeRoute),
                   child: Text(
                     'Saltar',
                     style: AppTextStyles.labelLarge.copyWith(
@@ -47,7 +52,10 @@ class RewardScreen extends StatelessWidget {
 
                     // ── Badge y Textos ─────────────────────────────────────
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF4B740),
                         borderRadius: BorderRadius.circular(100),
@@ -122,7 +130,7 @@ class RewardScreen extends StatelessWidget {
               padding: const EdgeInsets.all(24),
               child: PrimaryButton(
                 label: 'Reclamar y continuar',
-                onPressed: () => context.go(AppRoutes.homeKids),
+                onPressed: () => context.go(homeRoute),
               ),
             ),
           ],
@@ -169,10 +177,7 @@ class _RewardTrophy extends StatelessWidget {
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
-                colors: [
-                  Color(0xFFF4B740),
-                  Color(0xFFFFD580),
-                ],
+                colors: [Color(0xFFF4B740), Color(0xFFFFD580)],
               ),
             ),
             child: const Icon(
@@ -185,12 +190,20 @@ class _RewardTrophy extends StatelessWidget {
           Positioned(
             top: 20,
             right: 30,
-            child: Icon(Icons.star_rounded, size: 16, color: const Color(0xFFF4B740).withOpacity(0.6)),
+            child: Icon(
+              Icons.star_rounded,
+              size: 16,
+              color: const Color(0xFFF4B740).withOpacity(0.6),
+            ),
           ),
           Positioned(
             bottom: 40,
             left: 20,
-            child: Icon(Icons.star_rounded, size: 12, color: const Color(0xFFF4B740).withOpacity(0.4)),
+            child: Icon(
+              Icons.star_rounded,
+              size: 12,
+              color: const Color(0xFFF4B740).withOpacity(0.4),
+            ),
           ),
         ],
       ),
@@ -249,10 +262,7 @@ class _RewardItem extends StatelessWidget {
                     fontSize: 15,
                   ),
                 ),
-                Text(
-                  subtitle,
-                  style: AppTextStyles.bodySmall,
-                ),
+                Text(subtitle, style: AppTextStyles.bodySmall),
               ],
             ),
           ),

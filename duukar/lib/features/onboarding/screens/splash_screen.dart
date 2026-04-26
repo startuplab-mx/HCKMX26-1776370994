@@ -4,8 +4,21 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/constants/app_supabase.dart';
+import '../../../core/utils/local_prefs.dart';
 
-/// Pantalla de splash — auto-navega a /welcome después de 2.5 segundos.
+/// Splash screen — auto-navigates to the correct destination after a short
+/// delay depending on session state and onboarding flags:
+///
+///   No authenticated user:
+///     welcome_seen == false  → /welcome
+///     welcome_seen == true   → /login
+///
+///   Authenticated user:
+///     duki_intro_seen == false            → /intro-duki
+///     navigation_tutorial_seen == false   → /navigation-tutorial
+///     mandatory_lessons_completed == false → /mandatory-lesson-1
+///     else                                → homeKids (6-11) | homeTeens (12+)
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -28,9 +41,46 @@ class _SplashScreenState extends State<SplashScreen>
     _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 2500), () {
-      if (mounted) context.go(AppRoutes.welcome);
-    });
+    Future.delayed(const Duration(milliseconds: 2500), _navigate);
+  }
+
+  Future<void> _navigate() async {
+    if (!mounted) return;
+
+    final user = AppSupabase.currentUser;
+
+    if (user == null) {
+      // ── Unauthenticated ──────────────────────────────────────────────────
+      final welcomeSeen = await LocalPrefs.isWelcomeSeen();
+      if (!mounted) return;
+      context.go(welcomeSeen ? AppRoutes.login : AppRoutes.welcome);
+      return;
+    }
+
+    // ── Authenticated — check onboarding steps in order ──────────────────
+    final dukiIntroSeen = await LocalPrefs.isDukiIntroSeen();
+    if (!mounted) return;
+    if (!dukiIntroSeen) {
+      context.go(AppRoutes.introDuki);
+      return;
+    }
+
+    final navTutorialSeen = await LocalPrefs.isNavigationTutorialSeen();
+    if (!mounted) return;
+    if (!navTutorialSeen) {
+      context.go(AppRoutes.navigationTutorial);
+      return;
+    }
+
+    final lessonsCompleted = await LocalPrefs.isMandatoryLessonsCompleted();
+    if (!mounted) return;
+    if (!lessonsCompleted) {
+      context.go(AppRoutes.mandatoryLesson1);
+      return;
+    }
+
+    // ── All onboarding done — route by age ───────────────────────────────
+    context.go(AppSupabase.homeRouteForCurrentUser());
   }
 
   @override

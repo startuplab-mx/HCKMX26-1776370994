@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/utils/local_prefs.dart';
 import '../../../core/widgets/primary_button.dart';
 
 /// Pantalla "Conoce a Duki" — presentación del asistente virtual.
@@ -16,7 +17,11 @@ class IntroDukiScreen extends StatefulWidget {
 }
 
 class _IntroDukiScreenState extends State<IntroDukiScreen> {
-  void _onDone() => context.go(AppRoutes.navigationTutorial);
+  Future<void> _onDone() async {
+    await LocalPrefs.setDukiIntroSeen();
+    if (!mounted) return;
+    context.go(AppRoutes.navigationTutorial);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,10 +31,7 @@ class _IntroDukiScreenState extends State<IntroDukiScreen> {
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
-        title: Text(
-          'Duukar',
-          style: AppTextStyles.titleAppBar,
-        ),
+        title: Text('Duukar', style: AppTextStyles.titleAppBar),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -52,7 +54,9 @@ class _IntroDukiScreenState extends State<IntroDukiScreen> {
                       right: -40,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
@@ -132,10 +136,7 @@ class _IntroDukiScreenState extends State<IntroDukiScreen> {
 
               const SizedBox(height: 30),
 
-              PrimaryButton(
-                label: 'Conocer las secciones',
-                onPressed: _onDone,
-              ),
+              PrimaryButton(label: 'Conocer las secciones', onPressed: _onDone),
               const SizedBox(height: 24),
             ],
           ),
@@ -177,11 +178,7 @@ class _FeatureCard extends StatelessWidget {
               color: bgColor,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 24,
-            ),
+            child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(

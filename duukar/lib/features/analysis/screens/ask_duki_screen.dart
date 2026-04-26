@@ -702,19 +702,11 @@ class _ConsultHeader extends StatelessWidget {
       child: Row(
         children: [
           // Duki avatar badge
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary, width: 1.5),
-            ),
-            child: const Icon(
-              Icons.smart_toy_rounded,
-              color: AppColors.primary,
-              size: 22,
-            ),
+          Image.asset(
+            'assets/img/duki_delado.png',
+            width: 48,
+            height: 48,
+            fit: BoxFit.contain,
           ),
           const SizedBox(width: 12),
           Column(

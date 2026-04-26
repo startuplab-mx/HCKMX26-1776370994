@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/utils/local_prefs.dart';
 import '../../../core/widgets/primary_button.dart';
 
 /// Tutorial de espacios principales de la app.
@@ -57,16 +58,21 @@ class _NavigationTutorialScreenState extends State<NavigationTutorialScreen> {
     ),
   ];
 
-  void _next() {
+  Future<void> _next() async {
     if (_step < _sections.length - 1) {
       setState(() => _step++);
     } else {
-      // TODO: navegar a lección obligatoria 1 cuando esté lista
-      context.go(AppRoutes.mandatoryLesson1);
+      await _markSeenAndContinue();
     }
   }
 
-  void _skip() => context.go(AppRoutes.mandatoryLesson1);
+  Future<void> _skip() => _markSeenAndContinue();
+
+  Future<void> _markSeenAndContinue() async {
+    await LocalPrefs.setNavigationTutorialSeen();
+    if (!mounted) return;
+    context.go(AppRoutes.mandatoryLesson1);
+  }
 
   @override
   Widget build(BuildContext context) {

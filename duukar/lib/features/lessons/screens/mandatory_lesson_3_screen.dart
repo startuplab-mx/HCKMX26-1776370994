@@ -4,11 +4,23 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/utils/local_prefs.dart';
 import '../../../core/widgets/primary_button.dart';
 
 /// Lección obligatoria 3: "Cuando algo se sienta mal…"
-class MandatoryLesson3Screen extends StatelessWidget {
+class MandatoryLesson3Screen extends StatefulWidget {
   const MandatoryLesson3Screen({super.key});
+
+  @override
+  State<MandatoryLesson3Screen> createState() => _MandatoryLesson3ScreenState();
+}
+
+class _MandatoryLesson3ScreenState extends State<MandatoryLesson3Screen> {
+  Future<void> _onFinish() async {
+    await LocalPrefs.setMandatoryLessonsCompleted();
+    if (!mounted) return;
+    context.go(AppRoutes.reward);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +39,10 @@ class MandatoryLesson3Screen extends StatelessWidget {
 
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -113,7 +128,9 @@ class MandatoryLesson3Screen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: const Color(0xFFFDECED),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFE35D6A).withOpacity(0.1)),
+                        border: Border.all(
+                          color: const Color(0xFFE35D6A).withOpacity(0.1),
+                        ),
                       ),
                       child: Row(
                         children: [
@@ -150,7 +167,9 @@ class MandatoryLesson3Screen extends StatelessWidget {
                                 Text(
                                   'El botón rojo de Duukar siempre está a un toque.',
                                   style: AppTextStyles.bodySmall.copyWith(
-                                    color: const Color(0xFF8B5E5E).withOpacity(0.7),
+                                    color: const Color(
+                                      0xFF8B5E5E,
+                                    ).withOpacity(0.7),
                                   ),
                                 ),
                               ],
@@ -168,10 +187,7 @@ class MandatoryLesson3Screen extends StatelessWidget {
             // ── Footer ─────────────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.all(24),
-              child: PrimaryButton(
-                label: 'Lo tengo',
-                onPressed: () => context.go(AppRoutes.reward),
-              ),
+              child: PrimaryButton(label: 'Lo tengo', onPressed: _onFinish),
             ),
           ],
         ),
@@ -237,14 +253,21 @@ class _LessonHeader extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE3F5FF),
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.star_rounded, size: 16, color: Color(0xFF4FA8D1)),
+                    const Icon(
+                      Icons.star_rounded,
+                      size: 16,
+                      color: Color(0xFF4FA8D1),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '+$points pts',
@@ -265,7 +288,9 @@ class _LessonHeader extends StatelessWidget {
               value: progress,
               minHeight: 8,
               backgroundColor: const Color(0xFFE9F2FA),
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.primary,
+              ),
             ),
           ),
         ],
@@ -375,10 +400,7 @@ class _StepCard extends StatelessWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: BoxDecoration(
-              color: circleBg,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: circleBg, shape: BoxShape.circle),
             alignment: Alignment.center,
             child: Text(
               number,

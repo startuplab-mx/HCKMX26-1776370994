@@ -4,10 +4,22 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/utils/local_prefs.dart';
 import '../../../core/widgets/primary_button.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
+
+  /// Marks the welcome as seen and navigates to [route].
+  ///
+  /// Fire-and-forget: we do NOT await the prefs write before navigating so the
+  /// UX remains instant. The write is fast (disk cache) and the flag is only
+  /// needed on the NEXT cold launch, so it will be persisted in time.
+  Future<void> _continueToLogin(BuildContext context) async {
+    await LocalPrefs.setWelcomeSeen();
+    if (!context.mounted) return;
+    context.go(AppRoutes.login);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,10 +67,9 @@ class WelcomeScreen extends StatelessWidget {
 
               const Spacer(flex: 3),
 
-
               PrimaryButton(
                 label: 'Continuar',
-                onPressed: () => context.go(AppRoutes.login),
+                onPressed: () => _continueToLogin(context),
               ),
 
               const SizedBox(height: 32),
