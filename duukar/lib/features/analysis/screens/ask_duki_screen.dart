@@ -1,13 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/utils/nav_helper.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/section_card.dart';
+import '../analysis_controller.dart';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -67,7 +73,7 @@ class _AskDukiScreenState extends State<AskDukiScreen> {
       return _TutorialView(onReady: _markTutorialSeen);
     }
 
-    return _ConsultView();
+    return const _ConsultView();
   }
 }
 
@@ -361,7 +367,7 @@ class _ModeOption {
 }
 
 // ---------------------------------------------------------------------------
-// _UploadPreview — visual hint for the selected mode
+// _UploadPreview — visual hint for the selected mode (tutorial only)
 // ---------------------------------------------------------------------------
 
 class _UploadPreview extends StatelessWidget {
@@ -543,18 +549,23 @@ class _PrivacyMessage extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// _ConsultView — Normal mode (after tutorial)
+// _ConsultView — Normal mode (after tutorial) — wired to real controller
 // ---------------------------------------------------------------------------
 
-class _ConsultView extends StatefulWidget {
+class _ConsultView extends ConsumerStatefulWidget {
+  const _ConsultView();
+
   @override
-  State<_ConsultView> createState() => _ConsultViewState();
+  ConsumerState<_ConsultView> createState() => _ConsultViewState();
 }
 
-class _ConsultViewState extends State<_ConsultView> {
+class _ConsultViewState extends ConsumerState<_ConsultView> {
   // 0 = Captura, 1 = Texto
   int _mode = 0;
   final _textController = TextEditingController();
+
+  File? _pickedImage;
+  final _picker = ImagePicker();
 
   @override
   void dispose() {
@@ -568,8 +579,86 @@ class _ConsultViewState extends State<_ConsultView> {
     return idx < 0 ? 1 : idx; // default tab 1 = Duki
   }
 
+  // ── Image picker ──────────────────────────────────────────────────────
+
+  Future<void> _pickImage() async {
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+    setState(() => _pickedImage = File(picked.path));
+  }
+
+  // ── Analysis trigger ──────────────────────────────────────────────────
+
+  Future<void> _analyze() async {
+    final controller = ref.read(analysisControllerProvider.notifier);
+
+    if (_mode == 0) {
+      // Capture mode
+      if (_pickedImage == null) {
+        _showError('Primero elegí una imagen para analizar.');
+        return;
+      }
+      final result = await controller.analyzeImage(_pickedImage!);
+      if (!mounted) return;
+      if (result != null) {
+        context.push(AppRoutes.analysisResult, extra: result);
+      }
+    } else {
+      // Text mode
+      final text = _textController.text.trim();
+      if (text.isEmpty) {
+        _showError('Escribí o pegá el texto que querés analizar.');
+        return;
+      }
+      final result = await controller.analyzeText(text);
+      if (!mounted) return;
+      if (result != null) {
+        context.push(AppRoutes.analysisResult, extra: result);
+      }
+    }
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          msg,
+          style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+        ),
+        backgroundColor: AppColors.danger,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(analysisControllerProvider);
+    final isLoading = state.isLoading;
+
+    // Show error from controller
+    ref.listen<AnalysisState>(analysisControllerProvider, (_, next) {
+      if (next.hasError && !next.isLoading) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              next.errorMessage!,
+              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+            ),
+            backgroundColor: AppColors.danger,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        );
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
       bottomNavigationBar: AppBottomNav(
@@ -612,6 +701,7 @@ class _ConsultViewState extends State<_ConsultView> {
                       onSelect: (i) => setState(() {
                         _mode = i;
                         _textController.clear();
+                        _pickedImage = null;
                       }),
                     ),
 
@@ -621,7 +711,11 @@ class _ConsultViewState extends State<_ConsultView> {
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 250),
                       child: _mode == 0
-                          ? _CaptureInput(key: const ValueKey('capture'))
+                          ? _CaptureInput(
+                              key: const ValueKey('capture'),
+                              pickedImage: _pickedImage,
+                              onPickImage: _pickImage,
+                            )
                           : _TextInput(
                               key: const ValueKey('text'),
                               controller: _textController,
@@ -632,16 +726,16 @@ class _ConsultViewState extends State<_ConsultView> {
 
                     // Send button
                     PrimaryButton(
-                      label: 'Analizar con Duki',
-                      icon: const Icon(
-                        Icons.search_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        // TODO: integrate with analysis controller / repository
-                        _showAnalyzingSnackbar(context);
-                      },
+                      label: isLoading ? 'Analizando…' : 'Analizar con Duki',
+                      icon: isLoading
+                          ? null
+                          : const Icon(
+                              Icons.search_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                      isLoading: isLoading,
+                      onPressed: isLoading ? null : _analyze,
                     ),
 
                     const SizedBox(height: 16),
@@ -653,34 +747,6 @@ class _ConsultViewState extends State<_ConsultView> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showAnalyzingSnackbar(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Duki está analizando...',
-              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.primaryPressed,
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
   }
@@ -726,69 +792,84 @@ class _ConsultHeader extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// _CaptureInput
+// _CaptureInput — wired to image picker
 // ---------------------------------------------------------------------------
 
-class _CaptureInput extends StatefulWidget {
-  const _CaptureInput({super.key});
+class _CaptureInput extends StatelessWidget {
+  const _CaptureInput({
+    super.key,
+    required this.pickedImage,
+    required this.onPickImage,
+  });
 
-  @override
-  State<_CaptureInput> createState() => _CaptureInputState();
-}
-
-class _CaptureInputState extends State<_CaptureInput> {
-  // Simple mock state — no actual image_picker wiring for hackathon speed
-  bool _hasImage = false;
+  final File? pickedImage;
+  final VoidCallback onPickImage;
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = pickedImage != null;
+
     return SectionCard(
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           GestureDetector(
-            onTap: () => setState(() => _hasImage = !_hasImage),
+            onTap: onPickImage,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               height: 140,
               decoration: BoxDecoration(
-                color: _hasImage ? AppColors.primaryLight : AppColors.muted,
+                color: hasImage ? AppColors.primaryLight : AppColors.muted,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: _hasImage ? AppColors.primary : AppColors.border,
-                  width: _hasImage ? 1.5 : 1,
+                  color: hasImage ? AppColors.primary : AppColors.border,
+                  width: hasImage ? 1.5 : 1,
                 ),
               ),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _hasImage
-                          ? Icons.check_circle_rounded
-                          : Icons.add_photo_alternate_rounded,
-                      size: 40,
-                      color: _hasImage
-                          ? AppColors.primary
-                          : AppColors.textSecondary,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _hasImage
-                          ? 'Imagen lista ✓ (toca para cambiar)'
-                          : 'Toca para subir una captura',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: _hasImage
-                            ? AppColors.primaryPressed
-                            : AppColors.textSecondary,
+              child: hasImage
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(13),
+                      child: Image.file(
+                        pickedImage!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
                       ),
-                      textAlign: TextAlign.center,
+                    )
+                  : Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.add_photo_alternate_rounded,
+                            size: 40,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Toca para elegir una captura',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+            ),
+          ),
+          if (hasImage) ...[
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: onPickImage,
+              child: Text(
+                'Cambiar imagen',
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: AppColors.primaryPressed,
+                  decoration: TextDecoration.underline,
                 ),
               ),
             ),
-          ),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [

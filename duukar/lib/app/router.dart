@@ -15,6 +15,9 @@ import '../features/lessons/screens/mandatory_lesson_3_screen.dart';
 import '../features/lessons/screens/reward_screen.dart';
 import '../features/home/screens/home_kids_screen.dart';
 import '../features/analysis/screens/ask_duki_screen.dart';
+import '../features/analysis/screens/analysis_result_screen.dart';
+import '../features/analysis/analysis_model.dart';
+import '../features/reports/screens/report_form_screen.dart';
 
 import '../core/utils/nav_helper.dart';
 import '../core/widgets/app_bottom_nav.dart';
@@ -150,18 +153,26 @@ final GoRouter appRouter = GoRouter(
       'Analizando',
       'Procesando contenido',
     ),
-    _placeholder(
-      AppRoutes.analysisResult,
-      'analysis-result',
-      'Resultado',
-      'Riesgo, señales y explicación',
+    GoRoute(
+      path: AppRoutes.analysisResult,
+      name: 'analysis-result',
+      builder: (context, state) {
+        final result = state.extra as AnalysisResult?;
+        if (result == null) {
+          // Fallback if someone navigates here directly without a result
+          return _RoutePlaceholderScreen(
+            title: 'Resultado',
+            subtitle: 'No hay resultado disponible.',
+          );
+        }
+        return AnalysisResultScreen(result: result);
+      },
     ),
     // Tab-root for Reportar
-    _navPlaceholder(
-      AppRoutes.reportForm,
-      'report-form',
-      'Reportar',
-      'Formulario de reporte',
+    GoRoute(
+      path: AppRoutes.reportForm,
+      name: 'report-form',
+      builder: (_, __) => const ReportFormScreen(),
     ),
     _placeholder(
       AppRoutes.reportsHistory,
